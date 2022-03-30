@@ -9,9 +9,9 @@ Train the autoencoder firstly, save the ckpt, load it for stage 2
 
 
 ### Stage 2: Train Transformer for the video prediction
-train_FAR.py: Fully autoregressive model
-train_FAR_mp.py: multiple gpu training (single machine)
-train_NAR.py: Non-autoregressive model
+train_FAR.py: Fully autoregressive model \
+train_FAR_mp.py: multiple gpu training (single machine) \
+train_NAR.py: Non-autoregressive model \
 train_NAR_mp.py: multiple gpu training (single machine)
 
 
