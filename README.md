@@ -1,5 +1,5 @@
 # VPTR: Efficient Transformers for Video Prediction
-Video future frames prediction based on Transformers
+Video future frames prediction based on Transformers, accepted by ICPR2022
 
 
 
