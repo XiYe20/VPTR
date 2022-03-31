@@ -10,7 +10,7 @@ from pathlib import Path
 import random
 from datetime import datetime
 
-from model import VPTREnc, VPTRDec, VPTRDisc, init_weights, VPTRFormerNAR, VPTRFormerAR, VPTRFormerFAR
+from model import VPTREnc, VPTRDec, VPTRDisc, init_weights, VPTRFormerNAR, VPTRFormerFAR
 from model import GDL, MSELoss, L1Loss, GANLoss, BiPatchNCE
 from utils import KTHDataset, BAIRDataset, MovingMNISTDataset
 from utils import get_dataloader
@@ -100,7 +100,7 @@ def single_iter(VPTR_Enc, VPTR_Dec, VPTR_Disc, VPTR_Transformer, optimizer_T, op
     
     return iter_loss_dict
 
-def GPT_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_pred, sample, save_dir, test_phase = True):
+def FAR_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_pred, sample, save_dir, test_phase = True):
     VPTR_Transformer = VPTR_Transformer.eval()
     with torch.no_grad():
         past_frames, future_frames = sample
@@ -136,11 +136,11 @@ def GPT_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_pred, sample, save
 
 if __name__ == '__main__':
     set_seed(2021)
-    ckpt_save_dir = Path('/home/travail/xiyex/VPTR_ckpts/MNIST_GPT_MSEGDL_ckpt')
-    tensorboard_save_dir = Path('/home/travail/xiyex/VPTR_ckpts/MNIST_GPT_MSEGDL_tensorboard')
+    ckpt_save_dir = Path('/home/travail/xiyex/VPTR_ckpts/MNIST_FAR_MSEGDL_ckpt')
+    tensorboard_save_dir = Path('/home/travail/xiyex/VPTR_ckpts/MNIST_FAR_MSEGDL_tensorboard')
     resume_AE_ckpt = Path('/home/travail/xiyex/VPTR_ckpts/MNIST_ResNetAE_MSEGDLgan001_ckpt').joinpath('epoch_93.tar')
-    resume_ckpt = ckpt_save_dir.joinpath('epoch_179.tar')
-    #resume_ckpt = None
+    #resume_ckpt = ckpt_save_dir.joinpath('epoch_179.tar')
+    resume_ckpt = None
 
     #############Set the logger#########
     if not Path(ckpt_save_dir).exists():
@@ -222,7 +222,7 @@ if __name__ == '__main__':
             
         loss_dict = EpochAveMeter.epoch_update(loss_dict, epoch, train_flag = True)
         write_summary(summary_writer, loss_dict, train_flag = True)
-        GPT_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_future_frames, sample, ckpt_save_dir.joinpath(f'train_gifs_epoch{epoch}'), test_phase = False)
+        FAR_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_future_frames, sample, ckpt_save_dir.joinpath(f'train_gifs_epoch{epoch}'), test_phase = False)
 
         if epoch % val_per_epochs == 0:   
             #validation
@@ -234,7 +234,7 @@ if __name__ == '__main__':
             write_summary(summary_writer, loss_dict, train_flag = False)
             
             for idx, sample in enumerate(test_loader, random.randint(0, len(test_loader) - 1)):
-                GPT_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_future_frames, sample, ckpt_save_dir.joinpath(f'test_gifs_epoch{epoch}'), test_phase = True)
+                FAR_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_future_frames, sample, ckpt_save_dir.joinpath(f'test_gifs_epoch{epoch}'), test_phase = True)
                 break
 
         save_ckpt({'VPTR_Transformer': VPTR_Transformer}, 

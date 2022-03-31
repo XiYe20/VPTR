@@ -15,7 +15,7 @@ from pathlib import Path
 import random
 from datetime import datetime
 
-from model import VPTREnc, VPTRDec, VPTRDisc, init_weights, VPTRFormerNAR, VPTRFormerAR, VPTRFormerFAR
+from model import VPTREnc, VPTRDec, VPTRDisc, init_weights, VPTRFormerNAR, VPTRFormerFAR
 from model import GDL, MSELoss, L1Loss, GANLoss, BiPatchNCE
 from utils import KTHDataset, BAIRDataset, MovingMNISTDataset
 from utils import get_dataloader
@@ -27,10 +27,10 @@ import os
 
 import argparse
 
-parser = argparse.ArgumentParser(description='Datadistributed training of GPT')
+parser = argparse.ArgumentParser(description='Datadistributed training of FAR')
 parser.add_argument('--init_method', default='tcp://127.0.0.2:29501', type=str, help='')
 
-def GPT_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_pred, sample, save_dir, device, renorm_transform, test_phase = True):
+def FAR_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_pred, sample, save_dir, device, renorm_transform, test_phase = True):
     VPTR_Transformer = VPTR_Transformer.eval()
     with torch.no_grad():
         past_frames, future_frames = sample
@@ -210,7 +210,7 @@ def main_worker(rank, args, world_size, img_channels, encC, encH, encW, dropout,
                 data_set_name, batch_size, data_set_dir, dev_set_size, epochs, ckpt_save_dir, tensorboard_save_dir,
                 resume_Transformer_ckpt = None, num_encoder_layers = 12, num_past_frames = 10, 
                 num_future_frames = 10, init_Disc = False, train_Disc = False,
-                bair_crop=False, num_workers = 8, show_example_epochs = 10, save_ckpt_epochs = 2, padding_type = 'reflect'):
+                num_workers = 8, show_example_epochs = 10, save_ckpt_epochs = 2, padding_type = 'reflect'):
     setup(rank, world_size, args)
     torch.cuda.set_device(rank)
 
@@ -230,8 +230,7 @@ def main_worker(rank, args, world_size, img_channels, encC, encH, encW, dropout,
     mse_loss, gdl_loss, gan_loss, loss_name_list = init_models(img_channels, encC, encH, encW, dropout, out_layer, rpe, rank, Transformer_lr, resume_AE_ckpt, 
                                            resume_Transformer_ckpt, num_encoder_layers, num_past_frames, 
                                            num_future_frames, init_Disc, train_Disc, padding_type)
-    train_loader, val_loader, _, renorm_transform = get_dataloader(data_set_name, batch_size, data_set_dir, dev_set_size = dev_set_size, 
-                                                    bair_crop = bair_crop, ngpus = world_size, num_workers = num_workers)
+    train_loader, val_loader, _, renorm_transform = get_dataloader(data_set_name, batch_size, data_set_dir, ngpus = world_size, num_workers = num_workers)
     
     for epoch in range(start_epoch+1, start_epoch + epochs+1):
         epoch_st = datetime.now()
@@ -250,7 +249,7 @@ def main_worker(rank, args, world_size, img_channels, encC, encH, encW, dropout,
             loss_dict = train_meter.epoch_update(loss_dict, epoch, train_flag = True)
             write_summary(summary_writer, loss_dict, train_flag = True)
             if epoch % show_example_epochs == 0 or epoch == 1:
-                GPT_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_future_frames, sample, ckpt_save_dir.joinpath(f'train_gifs_epoch{epoch}'), rank, renorm_transform, test_phase = False)
+                FAR_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_future_frames, sample, ckpt_save_dir.joinpath(f'train_gifs_epoch{epoch}'), rank, renorm_transform, test_phase = False)
             
         #validation
         val_EpochAveMeter = AverageMeters(loss_name_list)
@@ -265,7 +264,7 @@ def main_worker(rank, args, world_size, img_channels, encC, encH, encW, dropout,
             loss_dict = val_meter.epoch_update(loss_dict, epoch, train_flag = False)
             write_summary(summary_writer, loss_dict, train_flag = False)
             if epoch % show_example_epochs == 0 or epoch == 1:
-                GPT_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_future_frames, sample, ckpt_save_dir.joinpath(f'val_gifs_epoch{epoch}'), rank, renorm_transform, test_phase = True)
+                FAR_show_sample(VPTR_Enc, VPTR_Dec, VPTR_Transformer, num_future_frames, sample, ckpt_save_dir.joinpath(f'val_gifs_epoch{epoch}'), rank, renorm_transform, test_phase = True)
             
             if epoch % save_ckpt_epochs == 0:
                 save_ckpt({'VPTR_Transformer': VPTR_Transformer}, 
@@ -280,18 +279,17 @@ if __name__ == '__main__':
     set_seed(3407)
     args = parser.parse_args()
 
-    ckpt_save_dir = Path('/home/xiyex/VPTR_ckpts/BAIR_GPT_MSEGDL_RPE_mp_ckpt')
-    tensorboard_save_dir = Path('/home/xiyex/VPTR_ckpts/BAIR_GPT_MSEGDL_RPE_mp_tensorboard')
-    resume_AE_ckpt = Path('/home/xiyex/VPTR_ckpts/BAIR_ResNetAE_MSEGDL_ckpt').joinpath('epoch_64.tar')
+    ckpt_save_dir = Path('/home/travail/xiyex/VPTR_ckpts/BAIR_FAR_MSEGDL_RPE_mp_ckpt')
+    tensorboard_save_dir = Path('/home/travail/xiyex/VPTR_ckpts/BAIR_FAR_MSEGDL_RPE_mp_tensorboard')
+    resume_AE_ckpt = Path('/home/travail/xiyex/VPTR_ckpts/BAIR_ResNetAE_MSEGDL_ckpt').joinpath('epoch_64.tar')
 
     #resume_Transformer_ckpt = ckpt_save_dir.joinpath('epoch_128.tar')
     resume_Transformer_ckpt = None
 
     data_set_name = 'BAIR'
     out_layer = 'Tanh'
-    data_set_dir = './BAIR'
+    data_set_dir = '/home/travail/xiyex/BAIR'
     dev_set_size = 500
-    bair_crop=False
     padding_type = 'zero'
 
     num_past_frames = 2
@@ -324,6 +322,6 @@ if __name__ == '__main__':
                 data_set_name, batch_size, data_set_dir, dev_set_size, epochs, ckpt_save_dir, tensorboard_save_dir,
                 resume_Transformer_ckpt, num_encoder_layers, num_past_frames, 
                 num_future_frames, init_Disc, train_Disc,
-                bair_crop, num_workers, show_example_epochs, save_ckpt_epochs, padding_type),
+                num_workers, show_example_epochs, save_ckpt_epochs, padding_type),
              nprocs=world_size)
     

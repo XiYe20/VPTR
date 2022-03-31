@@ -15,7 +15,7 @@ from pathlib import Path
 import random
 from datetime import datetime
 
-from model import VPTREnc, VPTRDec, VPTRDisc, init_weights, VPTRFormerNAR, VPTRFormerAR, VPTRFormerGPT
+from model import VPTREnc, VPTRDec, VPTRDisc, init_weights, VPTRFormerNAR, VPTRFormerFAR
 from model import GDL, MSELoss, L1Loss, GANLoss, BiPatchNCE
 from utils import KTHDataset, BAIRDataset, MovingMNISTDataset
 from utils import get_dataloader
@@ -79,7 +79,7 @@ def cal_lossT(VPTR_Disc, fake_imgs, real_imgs, fake_feats, real_feats,  mse_loss
     return loss_T, T_GDL_loss, T_MSE_loss, T_PC_loss, loss_T_gan
 
 
-def init_models(img_channels, encC, encH, encW, dropout, out_layer, rpe, TSLMA_flag, TBP_flag, rank, batch_size, world_size,
+def init_models(img_channels, encC, encH, encW, dropout, out_layer, rpe, TSLMA_flag, rank, batch_size, world_size,
                 Transformer_lr, resume_AE_ckpt, 
                 resume_Transformer_ckpt = None, num_encoder_layers = 4, num_decoder_layers = 8,
                 num_past_frames = 10, num_future_frames = 10, init_Disc = False, train_Disc = False):
@@ -108,7 +108,7 @@ def init_models(img_channels, encC, encH, encW, dropout, out_layer, rpe, TSLMA_f
 
     VPTR_Transformer = VPTRFormerNAR(num_past_frames, num_future_frames, encH=encH, encW = encW, d_model=encC, 
                                         nhead=8, num_encoder_layers=num_encoder_layers, num_decoder_layers=num_decoder_layers, dropout=dropout, 
-                                        window_size=4, Spatial_FFN_hidden_ratio=4, TSLMA_flag = TSLMA_flag, rpe = rpe, TBP_flag = TBP_flag).to(rank)
+                                        window_size=4, Spatial_FFN_hidden_ratio=4, TSLMA_flag = TSLMA_flag, rpe = rpe).to(rank)
     
     optimizer_T = torch.optim.AdamW(params = VPTR_Transformer.parameters(), lr = Transformer_lr)
 
@@ -198,11 +198,11 @@ def cleanup():
     dist.destroy_process_group()
 
 def main_worker(rank, args, world_size, img_channels, encC, encH, encW, dropout, out_layer, TSLMA_flag,
-                rpe, TBP_flag, Transformer_lr, max_grad_norm, lam_pc, lam_gan, resume_AE_ckpt,
+                rpe, Transformer_lr, max_grad_norm, lam_pc, lam_gan, resume_AE_ckpt,
                 data_set_name, batch_size, data_set_dir, dev_set_size, epochs, ckpt_save_dir, tensorboard_save_dir,
                 resume_Transformer_ckpt = None, num_encoder_layers = 4, num_decoder_layers = 8, num_past_frames = 10, 
                 num_future_frames = 10, init_Disc = False, train_Disc = False,
-                bair_crop=False, num_workers = 8, show_example_epochs = 10, save_ckpt_epochs = 2):
+                num_workers = 8, show_example_epochs = 10, save_ckpt_epochs = 2):
     setup(rank, world_size, args)
     torch.cuda.set_device(rank)
 
@@ -220,11 +220,10 @@ def main_worker(rank, args, world_size, img_channels, encC, encH, encW, dropout,
     VPTR_Enc, VPTR_Dec, VPTR_Disc, VPTR_Transformer, \
     optimizer_D, optimizer_T, start_epoch, loss_dict, \
     mse_loss, gdl_loss, bpnce, gan_loss, loss_name_list = init_models(img_channels, encC, encH, encW, dropout, out_layer, rpe, 
-                                                                      TSLMA_flag, TBP_flag, rank, batch_size, world_size, Transformer_lr, resume_AE_ckpt, 
+                                                                      TSLMA_flag, rank, batch_size, world_size, Transformer_lr, resume_AE_ckpt, 
                                                                       resume_Transformer_ckpt, num_encoder_layers, num_decoder_layers,
                                                                       num_past_frames, num_future_frames, init_Disc, train_Disc)
-    train_loader, val_loader, _, renorm_transform = get_dataloader(data_set_name, batch_size, data_set_dir, dev_set_size = dev_set_size, 
-                                                    bair_crop = bair_crop, ngpus = world_size, num_workers = num_workers)
+    train_loader, val_loader, _, renorm_transform = get_dataloader(data_set_name, batch_size, data_set_dir, ngpus = world_size, num_workers = num_workers)
     
     for epoch in range(start_epoch+1, start_epoch + epochs+1):
         epoch_st = datetime.now()
@@ -279,17 +278,16 @@ if __name__ == '__main__':
     set_seed(3407)
     args = parser.parse_args()
 
-    ckpt_save_dir = Path('/home/xiyex/VPTR_ckpts/MNIST_TLMA_TBP_aug_BPNCE01_MSEGDL_NAR_mp_ckpt')
-    tensorboard_save_dir = Path('/home/xiyex/VPTR_ckpts/MNIST_TLMA_TBP_aug_BPNCE01_MSEGDL_NAR_mp_tensorboard')
-    resume_AE_ckpt = Path('/home/xiyex/VPTR_ckpts/MNIST_ResNetAE_MSEGDLgan001_ckpt').joinpath('epoch_93.tar')
+    ckpt_save_dir = Path('/home/travail/xiyex/VPTR_ckpts/MNIST_TLMA_aug_BPNCE01_MSEGDL_NAR_mp_ckpt')
+    tensorboard_save_dir = Path('/home/travail/xiyex/VPTR_ckpts/MNIST_TLMA_aug_BPNCE01_MSEGDL_NAR_mp_tensorboard')
+    resume_AE_ckpt = Path('/home/travail/xiyex/VPTR_ckpts/MNIST_ResNetAE_MSEGDLgan001_ckpt').joinpath('epoch_93.tar')
     #resume_Transformer_ckpt = ckpt_save_dir.joinpath('epoch_90.tar')
     resume_Transformer_ckpt = None
 
     data_set_name = 'MNIST'
     out_layer = 'Sigmoid'
-    data_set_dir = './MovingMNIST'
+    data_set_dir = '/home/travail/xiyex/MovingMNIST'
     dev_set_size = 50
-    bair_crop=False
 
     num_past_frames = 10
     num_future_frames = 10
@@ -304,7 +302,6 @@ if __name__ == '__main__':
     max_grad_norm = 1.0 
     TSLMA_flag = False
     rpe = False
-    TBP_flag = True
 
     lam_gan = None #0.001
     lam_pc = 0.1
@@ -313,7 +310,7 @@ if __name__ == '__main__':
     init_Disc = False
     train_Disc = False
     num_workers = 1
-    world_size = 2
+    world_size = 4
 
     show_example_epochs = 1
     save_ckpt_epochs = 1
@@ -321,10 +318,10 @@ if __name__ == '__main__':
     print("Start training....")
     mp.spawn(main_worker,
              args=(args, world_size, img_channels, encC, encH, encW, dropout, out_layer, TSLMA_flag,
-                rpe, TBP_flag, Transformer_lr, max_grad_norm, lam_pc, lam_gan, resume_AE_ckpt,
+                rpe, Transformer_lr, max_grad_norm, lam_pc, lam_gan, resume_AE_ckpt,
                 data_set_name, batch_size, data_set_dir, dev_set_size, epochs, ckpt_save_dir, tensorboard_save_dir,
                 resume_Transformer_ckpt, num_encoder_layers, num_decoder_layers, num_past_frames, 
                 num_future_frames, init_Disc, train_Disc,
-                bair_crop, num_workers, show_example_epochs, save_ckpt_epochs),
+                num_workers, show_example_epochs, save_ckpt_epochs),
              nprocs=world_size)
     

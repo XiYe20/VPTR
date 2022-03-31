@@ -30,7 +30,7 @@ def cal_lossD(VPTR_Disc, fake_imgs, real_imgs, lam_gan):
 
     return loss_D, loss_D_fake, loss_D_real
     
-def cal_lossT(VPTR_Disc, fake_imgs, real_imgs, fake_feats, real_feats, lam_pc, lam_gan:
+def cal_lossT(VPTR_Disc, fake_imgs, real_imgs, fake_feats, real_feats, lam_pc, lam_gan):
     T_MSE_loss = mse_loss(fake_imgs, real_imgs)
     T_GDL_loss = gdl_loss(real_imgs, fake_imgs)
     T_PC_loss = bpnce(F.normalize(real_feats, p=2.0, dim=2), F.normalize(fake_feats, p=2.0, dim=2))
@@ -142,8 +142,8 @@ if __name__ == '__main__':
     ckpt_save_dir = Path('/home/travail/xiyex/VPTR_ckpts/BAIR_NAR_MSEGDL_BPNCE01_RPE_ckpt')
     tensorboard_save_dir = Path('/home/travail/xiyex/VPTR_ckpts/BAIR_NAR_MSEGDL_BPNCE01_RPE_tensorboard')
     resume_AE_ckpt = Path('/home/travail/xiyex/VPTR_ckpts/BAIR_ResNetAE_MSEGDL_ckpt').joinpath('epoch_64.tar')
-    resume_ckpt = ckpt_save_dir.joinpath('epoch_88.tar')
-    #resume_ckpt = None
+    #resume_ckpt = ckpt_save_dir.joinpath('epoch_88.tar')
+    resume_ckpt = None
 
     #############Set the logger#########
     if not Path(ckpt_save_dir).exists():
@@ -179,12 +179,10 @@ if __name__ == '__main__':
 
     #####################Init Dataset ###########################
     data_set_name = 'BAIR'
-    dataset_dir = './BAIR'
+    dataset_dir = '/home/travail/xiyex/BAIR'
     test_past_frames = 2
     test_future_frames = 10
-    dev_set_size = None
-    bair_crop = False
-    train_loader, val_loader, test_loader, renorm_transform = get_dataloader(data_set_name, N, dataset_dir, test_past_frames, test_future_frames, dev_set_size, bair_crop)
+    train_loader, val_loader, test_loader, renorm_transform = get_dataloader(data_set_name, N, dataset_dir, test_past_frames, test_future_frames)
 
     #####################Init model###########################
     VPTR_Enc = VPTREnc(img_channels, feat_dim = encC, n_downsampling = 3, padding_type = padding_type).to(device)
