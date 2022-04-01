@@ -28,7 +28,7 @@ class VidHRFormerEncoder(nn.Module):
         return output
 
 class VidHRFormerBlockEnc(nn.Module):
-    def __init__(self, embed_dim, num_heads, window_size = 7, dropout = 0., drop_path = 0., Spatial_FFN_hidden_ratio = 4, dim_feedforward = 1024, gpt = False, rpe = True):
+    def __init__(self, embed_dim, num_heads, window_size = 7, dropout = 0., drop_path = 0., Spatial_FFN_hidden_ratio = 4, dim_feedforward = 1024, far = False, rpe = True):
         super().__init__()
         self.embed_dim = embed_dim
         self.num_heads = num_heads
@@ -38,7 +38,7 @@ class VidHRFormerBlockEnc(nn.Module):
 
         self.SLMHSA = SpatialLocalMultiheadAttention(embed_dim, num_heads, window_size, dropout, rpe)
         MlpDWBN_layer_norm = False
-        if gpt:
+        if far:
             MlpDWBN_layer_norm = True
         self.SpatialFFN = MlpDWBN(embed_dim, hidden_features = int(Spatial_FFN_hidden_ratio*embed_dim), out_features = embed_dim, drop = dropout, AR_model = MlpDWBN_layer_norm)
         self.norm1 = nn.LayerNorm(embed_dim)
@@ -55,7 +55,7 @@ class VidHRFormerBlockEnc(nn.Module):
         self.drop3 = nn.Dropout(dropout) if dropout > 0. else nn.Identity()
         self.norm4 = nn.LayerNorm(embed_dim)
 
-        self.gpt = gpt
+        self.far = far
 
     def forward(self, x, local_window_pos_embed, temporal_pos_embed):
         """
@@ -73,7 +73,7 @@ class VidHRFormerBlockEnc(nn.Module):
         #temporal attention
         x = x.permute(1, 0, 2, 3, 4).reshape(T, N*H*W, C)
         x1 = self.norm3(x)
-        if self.gpt:
+        if self.far:
             #create attention mask for temporal self-attention
             attn_mask = torch.triu(torch.ones(T, T), diagonal = 1) == 1
             x = x + self.drop1(self.temporal_MHSA(x1 + temporal_pos_embed[:, None, :], 

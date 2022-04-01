@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from .ResNetAutoEncoder import ResnetEncoder, ResnetDecoder
-from .VidHRFormer import VidHRFormerNAR, VidHRFormerGPT
+from .VidHRFormer import VidHRFormerNAR, VidHRFormerFAR
 from utils.misc import NestedTensor
 from utils.position_encoding import PositionEmbeddding1D, PositionEmbeddding2D, PositionEmbeddding3D
 import functools
@@ -166,7 +166,7 @@ class VPTRFormerFAR(nn.Module):
         self.window_size = window_size
         self.Spatial_FFN_hidden_ratio = Spatial_FFN_hidden_ratio 
 
-        self.transformer = VidHRFormerGPT((d_model, encH, encW), num_encoder_layers, num_past_frames, num_future_frames,
+        self.transformer = VidHRFormerFAR((d_model, encH, encW), num_encoder_layers, num_past_frames, num_future_frames,
                     d_model, nhead, window_size = window_size, dropout = dropout, drop_path = dropout, 
                     Spatial_FFN_hidden_ratio = Spatial_FFN_hidden_ratio, dim_feedforward = self.d_model*Spatial_FFN_hidden_ratio, rpe=rpe)
         

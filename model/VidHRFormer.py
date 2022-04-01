@@ -53,7 +53,7 @@ class VidHRFormerNAR(nn.Module):
         return out, memory
 
 
-class VidHRFormerGPT(nn.Module):
+class VidHRFormerFAR(nn.Module):
     def __init__(self, in_feat_shape, num_encoder_layer, num_past_frames, num_future_frames,
                     embed_dim, num_heads, window_size = 7, dropout = 0., drop_path = 0., Spatial_FFN_hidden_ratio = 4, dim_feedforward = 512, rpe = True):
         super().__init__()
@@ -65,7 +65,7 @@ class VidHRFormerGPT(nn.Module):
         self.num_encoder_layer = num_encoder_layer
         self.num_heads = num_heads
 
-        self.encoder = VidHRFormerEncoder(VidHRFormerBlockEnc(embed_dim, num_heads, window_size, dropout, drop_path, Spatial_FFN_hidden_ratio, dim_feedforward, gpt = True, rpe=rpe), 
+        self.encoder = VidHRFormerEncoder(VidHRFormerBlockEnc(embed_dim, num_heads, window_size, dropout, drop_path, Spatial_FFN_hidden_ratio, dim_feedforward, far = True, rpe=rpe), 
                                         num_encoder_layer, nn.LayerNorm(embed_dim))
         
     def forward(self, input_feat, local_window_pos_embed, temporal_pos_embed):
