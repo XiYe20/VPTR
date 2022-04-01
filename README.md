@@ -69,3 +69,14 @@ train_NAR_mp.py: multiple gpu training (single machine)
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ... \
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; example_... 
 
+### Citing
+   
+Please cite the paper if you find our work is helpful.
+```
+@article{ye_2022,
+       title = {VPTR: Efficient Transformers for Video Prediction},
+       author = {Xi Ye and Guillaume-Alexandre Bilodeau},
+       journal={arXiv preprint arXiv:2203.15836},
+       year={2022}
+} 
+```
