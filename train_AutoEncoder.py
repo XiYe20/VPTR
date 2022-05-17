@@ -138,6 +138,13 @@ if __name__ == '__main__':
     optimizer_G = torch.optim.Adam(params = list(VPTR_Enc.parameters()) + list(VPTR_Dec.parameters()), lr=AE_lr, betas = (0.5, 0.999))
     optimizer_D = torch.optim.Adam(params = VPTR_Disc.parameters(), lr=AE_lr, betas = (0.5, 0.999))
 
+    Enc_parameters = sum(p.numel() for p in VPTR_Enc.parameters() if p.requires_grad)
+    Dec_parameters = sum(p.numel() for p in VPTR_Dec.parameters() if p.requires_grad)
+    Disc_parameters = sum(p.numel() for p in VPTR_Disc.parameters() if p.requires_grad)
+    print(f"Encoder num_parameters: {Enc_parameters}")
+    print(f"Decoder num_parameters: {Dec_parameters}")
+    print(f"Discriminator num_parameters: {Disc_parameters}")
+
     #####################Init Criterion ###########################
     loss_name_list = ['AE_MSE', 'AE_GDL', 'AE_total', 'Dtotal', 'Dfake', 'Dreal', 'AEgan']
     gan_loss = GANLoss('vanilla', target_real_label=1.0, target_fake_label=0.0).to(device)

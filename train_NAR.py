@@ -204,6 +204,9 @@ if __name__ == '__main__':
     #optimizer_D = torch.optim.Adam(params = VPTR_Disc.parameters(), lr = Transformer_lr, betas = (0.5, 0.999))
     optimizer_T = torch.optim.AdamW(params = VPTR_Transformer.parameters(), lr = Transformer_lr)
 
+    Transformer_parameters = sum(p.numel() for p in VPTR_Transformer.parameters() if p.requires_grad)
+    print(f"NAR Transformer num_parameters: {Transformer_parameters}")
+
     #####################Init loss function###########################
     loss_name_list = ['T_MSE', 'T_GDL', 'T_gan', 'T_total', 'T_bpc', 'Dtotal', 'Dfake', 'Dreal']
     #gan_loss = GANLoss('vanilla', target_real_label=1.0, target_fake_label=0.0).to(device)
