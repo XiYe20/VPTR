@@ -8,6 +8,11 @@ Fully autoregressive (left) and non-autoregressive VPTR (right).
 
 ![Alt text](./docs/VPTR.png?raw=true "Title")
 
+## Pretrained-models
+Download the checkpoints from here: https://polymtlca0-my.sharepoint.com/:f:/g/personal/xi_ye_polymtl_ca/EuxjSddJ7wNIsiSTOfB-u7AB7qQhP5H0iX2a5mbaowiSZw?e=IEj1bd
+
+See Test_AutoEncoder.ipynb and Test_VPTR.ipynb for the detatiled test functions.
+
 ## Training
 ### Stage 1: train_AutoEncoder.py
 Train the autoencoder firstly, save the ckpt, load it for stage 2
