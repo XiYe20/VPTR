@@ -85,3 +85,11 @@ Please cite the paper if you find our work is helpful.
        year={2022}
 } 
 ```
+
+### Correction about the paper
+
+Recently, we found a mistake in our ICPR paper. For the BAIR experiments, the previous papers predict 28 future frames instead of 10. Specifically, the results in "TABLE II: Results on BAIR" are for 10 future frames instead of 28. The results for 28 predicted frames are updated here, see the following correct table.
+
+![Alt text](./docs/Table2_Corrected.png?raw=true "Title")
+
+We apologize for the mistake, the correction does not affect our conclusions.
