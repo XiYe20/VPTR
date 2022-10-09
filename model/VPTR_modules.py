@@ -129,7 +129,7 @@ class VPTRFormerNAR(nn.Module):
         self.register_buffer('Tlw_pos', Tlw_pos)
 
         #init queries of Transformer4
-        self.frame_queries = nn.Parameter(torch.randn(num_future_frames, 8, 8, self.d_model), requires_grad = True)
+        self.frame_queries = nn.Parameter(torch.randn(num_future_frames, encH, encW, self.d_model), requires_grad = True)
 
         #projector for the NCEloss
         self.NCE_projector = nn.Sequential(nn.Linear(self.d_model, self.d_model),

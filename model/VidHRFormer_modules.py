@@ -28,7 +28,7 @@ class VidHRFormerEncoder(nn.Module):
         return output
 
 class VidHRFormerBlockEnc(nn.Module):
-    def __init__(self, embed_dim, num_heads, window_size = 7, dropout = 0., drop_path = 0., Spatial_FFN_hidden_ratio = 4, dim_feedforward = 1024, far = False, rpe = True):
+    def __init__(self, encH, encW, embed_dim, num_heads, window_size = 7, dropout = 0., drop_path = 0., Spatial_FFN_hidden_ratio = 4, dim_feedforward = 1024, far = False, rpe = True):
         super().__init__()
         self.embed_dim = embed_dim
         self.num_heads = num_heads
@@ -40,7 +40,7 @@ class VidHRFormerBlockEnc(nn.Module):
         MlpDWBN_layer_norm = False
         if far:
             MlpDWBN_layer_norm = True
-        self.SpatialFFN = MlpDWBN(embed_dim, hidden_features = int(Spatial_FFN_hidden_ratio*embed_dim), out_features = embed_dim, drop = dropout, AR_model = MlpDWBN_layer_norm)
+        self.SpatialFFN = MlpDWBN(encH, encW, embed_dim, hidden_features = int(Spatial_FFN_hidden_ratio*embed_dim), out_features = embed_dim, drop = dropout, AR_model = MlpDWBN_layer_norm)
         self.norm1 = nn.LayerNorm(embed_dim)
         self.norm2 = nn.LayerNorm(embed_dim)
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
@@ -123,7 +123,7 @@ class VidHRformerDecoderNAR(nn.Module):
         return output
 
 class VidHRFormerBlockDecNAR(nn.Module):
-    def __init__(self, embed_dim, num_heads, window_size = 7, dropout = 0., drop_path = 0., Spatial_FFN_hidden_ratio = 4, dim_feedforward = 1024, TSLMA_flag = False, rpe = True):
+    def __init__(self, encH, encW, embed_dim, num_heads, window_size = 7, dropout = 0., drop_path = 0., Spatial_FFN_hidden_ratio = 4, dim_feedforward = 1024, TSLMA_flag = False, rpe = True):
         super().__init__()
         self.embed_dim = embed_dim
         self.num_heads = num_heads
@@ -133,7 +133,7 @@ class VidHRFormerBlockDecNAR(nn.Module):
 
         #self-attention of query, same as encoder
         self.SLMHSA = SpatialLocalMultiheadAttention(embed_dim, num_heads, window_size, dropout, rpe)
-        self.SpatialFFN = MlpDWBN(embed_dim, hidden_features = int(Spatial_FFN_hidden_ratio*embed_dim), out_features = embed_dim, drop = dropout)
+        self.SpatialFFN = MlpDWBN(encH, encW, embed_dim, hidden_features = int(Spatial_FFN_hidden_ratio*embed_dim), out_features = embed_dim, drop = dropout)
         self.norm1 = nn.LayerNorm(embed_dim)
         self.norm2 = nn.LayerNorm(embed_dim)
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
@@ -156,7 +156,7 @@ class VidHRFormerBlockDecNAR(nn.Module):
             self.TSLMA = TemporalSpatialLocalMultiheadAttention(embed_dim, num_heads, window_size, dropout)
         else:
             self.EncDecAttn = nn.MultiheadAttention(self.embed_dim, self.num_heads, dropout=dropout)
-        self.SpatialFFN1 = MlpDWBN(embed_dim, hidden_features = int(Spatial_FFN_hidden_ratio*embed_dim), out_features = embed_dim, drop = dropout)
+        self.SpatialFFN1 = MlpDWBN(encH, encW, embed_dim, hidden_features = int(Spatial_FFN_hidden_ratio*embed_dim), out_features = embed_dim, drop = dropout)
         self.norm5 = nn.LayerNorm(embed_dim)
         self.norm6 = nn.LayerNorm(embed_dim)
         self.drop_path1 = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
@@ -379,6 +379,8 @@ class MlpDWBN(nn.Module):
     """
     def __init__(
         self,
+        encH,
+        encW,
         in_features,
         hidden_features=None,
         out_features=None,
@@ -393,7 +395,7 @@ class MlpDWBN(nn.Module):
         self.fc1 = nn.Conv2d(in_features, hidden_features, kernel_size=1)
         self.act1 = act_layer()
         if AR_model:
-            self.norm1 = nn.LayerNorm((hidden_features, 8, 8))
+            self.norm1 = nn.LayerNorm((hidden_features, encH, encW))
         else:
             self.norm1 = nn.BatchNorm2d(hidden_features)
         self.dw3x3 = nn.Conv2d(
@@ -406,13 +408,13 @@ class MlpDWBN(nn.Module):
         )
         self.act2 = dw_act_layer()
         if AR_model:
-            self.norm2 = nn.LayerNorm((hidden_features, 8, 8))
+            self.norm2 = nn.LayerNorm((hidden_features, encH, encW))
         else:
             self.norm2 = nn.BatchNorm2d(hidden_features)
         self.fc2 = nn.Conv2d(hidden_features, out_features, kernel_size=1)
         self.act3 = act_layer()
         if AR_model:
-            self.norm3 = nn.LayerNorm((out_features, 8, 8))
+            self.norm3 = nn.LayerNorm((out_features, encH, encW))
         else:
             self.norm3 = nn.BatchNorm2d(out_features)
         self.drop = nn.Dropout(drop)

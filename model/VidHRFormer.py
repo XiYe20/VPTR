@@ -20,9 +20,9 @@ class VidHRFormerNAR(nn.Module):
         self.num_decoder_layer = num_decoder_layer
         self.num_heads = num_heads
 
-        self.encoder = VidHRFormerEncoder(VidHRFormerBlockEnc(embed_dim, num_heads, window_size, dropout, drop_path, Spatial_FFN_hidden_ratio, dim_feedforward, rpe=rpe), 
+        self.encoder = VidHRFormerEncoder(VidHRFormerBlockEnc(self.H, self.W, embed_dim, num_heads, window_size, dropout, drop_path, Spatial_FFN_hidden_ratio, dim_feedforward, rpe=rpe), 
                                         num_encoder_layer, nn.LayerNorm(embed_dim))
-        self.decoder = VidHRformerDecoderNAR(VidHRFormerBlockDecNAR(embed_dim, num_heads, window_size, dropout, drop_path, Spatial_FFN_hidden_ratio, dim_feedforward, TSLMA_flag, rpe=rpe),
+        self.decoder = VidHRformerDecoderNAR(VidHRFormerBlockDecNAR(self.H, self.W, embed_dim, num_heads, window_size, dropout, drop_path, Spatial_FFN_hidden_ratio, dim_feedforward, TSLMA_flag, rpe=rpe),
                                         num_decoder_layer, nn.LayerNorm(embed_dim), return_intermediate=False)
                                 
     def forward(self, src, local_window_pos_embed, temporal_pos_embed, TS_local_pos_embed, query_pos, init_tgt = None):
@@ -65,7 +65,7 @@ class VidHRFormerFAR(nn.Module):
         self.num_encoder_layer = num_encoder_layer
         self.num_heads = num_heads
 
-        self.encoder = VidHRFormerEncoder(VidHRFormerBlockEnc(embed_dim, num_heads, window_size, dropout, drop_path, Spatial_FFN_hidden_ratio, dim_feedforward, far = True, rpe=rpe), 
+        self.encoder = VidHRFormerEncoder(VidHRFormerBlockEnc(self.H, self.W, embed_dim, num_heads, window_size, dropout, drop_path, Spatial_FFN_hidden_ratio, dim_feedforward, far = True, rpe=rpe), 
                                         num_encoder_layer, nn.LayerNorm(embed_dim))
         
     def forward(self, input_feat, local_window_pos_embed, temporal_pos_embed):
