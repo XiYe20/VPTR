@@ -210,7 +210,7 @@ if __name__ == '__main__':
     #####################Init loss function###########################
     loss_name_list = ['T_MSE', 'T_GDL', 'T_gan', 'T_total', 'T_bpc', 'Dtotal', 'Dfake', 'Dreal']
     #gan_loss = GANLoss('vanilla', target_real_label=1.0, target_fake_label=0.0).to(device)
-    bpnce = BiPatchNCE(N, num_future_frames, 8, 8, 1.0).to(device)
+    bpnce = BiPatchNCE(N, num_future_frames, encH, encW, 1.0).to(device)
     loss_dict = init_loss_dict(loss_name_list)
     mse_loss = MSELoss()
     gdl_loss = GDL(alpha = 1)
