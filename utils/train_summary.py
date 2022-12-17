@@ -265,6 +265,6 @@ def parameters_count(model):
         print(name, param.size())
     """
     count = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"Number of trainable parameters are {float(count)/1e6} Million")
+    #print(f"Number of trainable parameters are {float(count)/1e6} Million")
     return count
     
