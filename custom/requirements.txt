@@ -1,0 +1,9 @@
+einops
+numpy
+opencv-python-headless
+Pillow
+timm
+torch
+torchvision
+tqdm
+tensorboard
