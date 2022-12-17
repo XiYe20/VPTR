@@ -1,0 +1,10 @@
+num_past_frames: 16
+num_future_frames: 4
+img_channels: 2
+encH: 8
+encW: 8
+encC: 528
+epochs: 50
+batch_size: 32
+AE_lr: 0.0002
+lam_gan: 0.01
