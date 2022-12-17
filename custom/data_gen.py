@@ -17,4 +17,4 @@ data_prep = torch.stack([data[:,:,:,k*64:(k+1) * 64] for k in range(7)])
 # use sliding windows to generate 9870 samples
 # training 6000, validation 2000, test 1870
 for i in range(7):
-    torch.save(torch.FloatTensor(data_prep[i]), "/rbc_data/sample_" + str(i) + ".pt")
+    torch.save(torch.FloatTensor(data_prep[i]), "rbc_data/sample_" + str(i) + ".pt")
