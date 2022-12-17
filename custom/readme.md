@@ -16,10 +16,11 @@ Format of the dataset:
 
 ```data_i = T x C x H x W ``` with:
 
-T: number of time stamps
-C: number of channels (1 channel for $v_x$ and 1 channel for $v_y$)
-H: vertical size of the frame
-W: horizontal size of the frame
+|---|------------------------------------------------------------------|
+| T | number of time stamps                                            |
+| C | number of channels (1 channel for $v_x$ and 1 channel for $v_y$) |
+| H | vertical size of the frame                                       |
+| W | horizontal size of the frame                                     |
 
 ## Training
 
