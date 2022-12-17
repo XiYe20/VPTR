@@ -5,8 +5,10 @@ import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 
-from pathlib import Path
 import random
+import yaml
+
+from pathlib import Path
 from datetime import datetime
 
 from model import VPTREnc, VPTRDec, VPTRDisc, init_weights
@@ -27,9 +29,9 @@ import os
 
 def arg_def():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_dir",       type = str, default = '/Users/combi/Documents/Projects/MG-Turbulent-Flow/data')
+    parser.add_argument("--data_dir",       type = str, default = "rbc_data")
     parser.add_argument("--checkpoint_dir", type = str, default = "VPTR_ckpts")
-    parser.add_argument("--batch_size",     type = int, default = 32)
+    parser.add_argument("--hyper_params",   type = str, default = "rbc_config.yaml")
     
     args = parser.parse_args()
     args.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -41,18 +43,21 @@ if __name__ == '__main__':
     
     checkpoints_save_dir = Path(args.checkpoint_dir) / 'RBC_ResNetAE_MSEGDLgan_ckpt'
     tensorboard_save_dir = Path(args.checkpoint_dir) / 'RBC_ResNetAE_MSEGDLgan_tensorboard'
+    start_epoch = 0
 
     summary_writer = SummaryWriter(tensorboard_save_dir.absolute().as_posix())
     
-    start_epoch = 0
-    num_past_frames = 16
-    num_future_frames = 4
-    encH, encW, encC = 8, 8, 528
-    img_channels = 2
-    epochs = 50
-    N = 32
-    AE_lr = 2e-4
-    lam_gan = 0.01
+    hyper_params_dict = yaml.load(open(args.hyper_params), Loader = yaml.loader.SafeLoader)
+    
+    num_past_frames = hyper_params_dict['num_past_frames']
+    num_future_frames = hyper_params_dict['num_future_frames']
+    encH, encW, encC = hyper_params_dict['encH'], hyper_params_dict['encW'], hyper_params_dict['encC']
+    img_channels = hyper_params_dict['img_channels']
+    
+    epochs = hyper_params_dict['epochs']
+    AE_lr = hyper_params_dict['AE_lr']
+    lam_gan = hyper_params_dict['lam_gan']
+    batch_size = hyper_params_dict['batch_size']
 
     #####################Init Dataset ###########################
     data_dir  = Path(args.data_dir)
@@ -62,9 +67,9 @@ if __name__ == '__main__':
     valid_set = rbc_data(data_prep, list(range(7000, 7500)), 16, 4, False)
     test_set = rbc_data(data_prep, list(range(7500, 7600)), 16, 4, False)
     
-    train_loader = DataLoader(train_set, batch_size=N, shuffle=True, num_workers=1, drop_last = True)
-    valid_loader = DataLoader(valid_set, batch_size=N, shuffle=True, num_workers=1, drop_last = True)
-    test_loader = DataLoader(test_set, batch_size=N, shuffle=True, num_workers=1, drop_last = True)
+    train_loader = DataLoader(train_set, batch_size = batch_size, shuffle = True, num_workers = 1, drop_last = True)
+    valid_loader = DataLoader(valid_set, batch_size = batch_size, shuffle = True, num_workers = 1, drop_last = True)
+    test_loader = DataLoader(test_set, batch_size = batch_size, shuffle = True, num_workers = 1, drop_last = True)
     #####################Init Models and Optimizer ###########################
     VPTR_Enc = VPTREnc(img_channels, feat_dim = encC, n_downsampling = 2).to(args.device)
     VPTR_Dec = VPTRDec(img_channels, feat_dim = encC, n_downsampling = 2, out_layer = 'Tanh').to(args.device) #Sigmoid for MNIST, Tanh for KTH and BAIR
