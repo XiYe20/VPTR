@@ -1,5 +1,5 @@
 # VPTR: Efficient Transformers for Video Prediction
-Video future frames prediction based on Transformers. Accepted by ICPR2022, http://arxiv.org/abs/2203.15836
+Video future frames prediction based on Transformers. Published on ICPR2022, https://ieeexplore.ieee.org/abstract/document/9956707
 
 # Video prediction by efficient transformers
 Published on Image and Vision Computing. https://arxiv.org/pdf/2212.06026.pdf
@@ -81,12 +81,14 @@ train_NAR_mp.py: multiple gpu training (single machine)
    
 Please cite the paper if you find our work is helpful.
 ```
-@article{ye_2022,
-       title = {VPTR: Efficient Transformers for Video Prediction},
-       author = {Xi Ye and Guillaume-Alexandre Bilodeau},
-       journal={arXiv preprint arXiv:2203.15836},
-       year={2022}
-} 
+@inproceedings{ye2022vptr,
+  title={VPTR: Efficient Transformers for Video Prediction},
+  author={Ye, Xi and Bilodeau, Guillaume-Alexandre},
+  booktitle={2022 26th International Conference on Pattern Recognition (ICPR)},
+  pages={3492--3499},
+  year={2022},
+  organization={IEEE}
+}
 ```
 ```
 @article{ye2022video,
