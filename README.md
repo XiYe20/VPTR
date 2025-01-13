@@ -31,6 +31,8 @@ train_NAR_mp.py: multiple gpu training (single machine)
 
 
 ### Dataset folder structure
+Please refer to https://github.com/google/e3d_lstm for the MovingMNIST dataset downloading.
+
 /MovingMNIST \
   &nbsp;&nbsp;&nbsp;&nbsp; moving-mnist-train.npz \
   &nbsp;&nbsp;&nbsp;&nbsp; moving-mnist-test.npz \
